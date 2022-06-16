@@ -8,7 +8,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 
-with open("auth0/VERSION", "r") as f:
+with open("pyauth0/VERSION", "r") as f:
     version = f.read().strip()
 
 

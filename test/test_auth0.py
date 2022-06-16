@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from auth0.auth0 import TokenPayload, Auth0
+from pyauth0.auth0 import TokenPayload, Auth0
 
-AUTH0_DOMAIN = "your-tenant.us.auth0.com"
+AUTH0_DOMAIN = "your-tenant.us.pyauth0.com"
 API_AUDIENCE = "https://api.your-tenant.com"
 CLIENT_ID = "9H1uYwvag..."
 TEST_USER = "test user email"
