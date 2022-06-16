@@ -197,9 +197,9 @@ class Auth0:
                 raise Auth0Error(status_code=401, code="invalid_claims",
                                  description="Incorrect claims, please check the audience and issuer")
 
-            except Exception:
-                raise Auth0Error(status_code=401, code="invalid_claims",
-                                 description="Unable to parse authentication token")
+            except Exception as error:
+                raise Auth0Error(status_code=401, code="invalid_token",
+                                 description=str(error))
 
             """Check permissions
             """
