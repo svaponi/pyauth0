@@ -26,7 +26,9 @@ class TokenPayload(dict):
         """
         return TokenPayload(raw_payload=jwt.get_unverified_claims(token))
 
-    def get_claim(self, claim_name: str, claim_default_value: Optional[Any] = None) -> Any:
+    def get_claim(
+        self, claim_name: str, claim_default_value: Optional[Any] = None
+    ) -> Any:
         """
         Returns the claim value if present, or claim_default_value
         """
@@ -38,8 +40,11 @@ class TokenPayload(dict):
         """
         claim_value = self.get_claim(claim_name)
         if not claim_value:
-            raise Auth0Error(status_code=401, code="invalid_token",
-                             description=f"Missing '{claim_name}' claim")
+            raise Auth0Error(
+                status_code=401,
+                code="invalid_token",
+                description=f"Missing '{claim_name}' claim.",
+            )
         return claim_value
 
 
@@ -47,8 +52,7 @@ class Auth0Error(Exception):
     def __init__(self, status_code: int, code: str, description: str):
         super().__init__()
         self.status_code = status_code
-        self.code = code
-        self.description = description
+        self.details = {"code": code, "description": description}
 
 
 class _JwksProvider:
@@ -87,18 +91,25 @@ class _JwksProviderWithCache(_JwksProvider):
     def get(self):
         if not self.__expires_at or self.__expires_at <= datetime.datetime.now():
             self.__jwks = super().get()
-            self.__expires_at = datetime.datetime.now() + datetime.timedelta(seconds=self.ttl_in_seconds)
+            self.__expires_at = datetime.datetime.now() + datetime.timedelta(
+                seconds=self.ttl_in_seconds
+            )
         return self.__jwks
 
 
 class Auth0:
-    def __init__(self, auth0_domain: str, api_audience: str, jwks_cache_ttl: Optional[int] = None):
+    def __init__(
+        self, auth0_domain: str, api_audience: str, jwks_cache_ttl: Optional[int] = None
+    ):
         self._auth0_domain = auth0_domain
         self._api_audience = api_audience
         # this is not safe to change without double-checking configuration in Auth0 dashboard + current codebase
         self._algorithms = ["RS256"]
-        self._jwks_provider = _JwksProviderWithCache(auth0_domain, jwks_cache_ttl) if jwks_cache_ttl else _JwksProvider(
-            auth0_domain)
+        self._jwks_provider = (
+            _JwksProviderWithCache(auth0_domain, jwks_cache_ttl)
+            if jwks_cache_ttl
+            else _JwksProvider(auth0_domain)
+        )
 
     @staticmethod
     def _extract_token_from_auth_header(auth_header: str) -> str:
@@ -106,20 +117,30 @@ class Auth0:
         Obtains the access token from the Authorization Header
         """
         if not auth_header:
-            raise Auth0Error(status_code=401, code="authorization_header_missing",
-                             description="Authorization header is expected")
+            raise Auth0Error(
+                status_code=401,
+                code="missing_header",
+                description="Authorization header is expected.",
+            )
 
         parts = auth_header.split()
 
         if parts[0].lower() != "bearer":
-            raise Auth0Error(status_code=401, code="invalid_header",
-                             description="Authorization header must start with Bearer")
+            raise Auth0Error(
+                status_code=401,
+                code="invalid_header",
+                description="Authorization header must start with Bearer.",
+            )
         elif len(parts) == 1:
-            raise Auth0Error(status_code=401, code="invalid_header",
-                             description="Token not found")
+            raise Auth0Error(
+                status_code=401, code="invalid_header", description="Token not found."
+            )
         elif len(parts) > 2:
-            raise Auth0Error(status_code=401, code="invalid_header",
-                             description="Authorization header must be Bearer token")
+            raise Auth0Error(
+                status_code=401,
+                code="invalid_header",
+                description="Authorization header must be Bearer token.",
+            )
 
         token = parts[1]
         return token
@@ -144,7 +165,9 @@ class Auth0:
 
         return list(set(permissions))  # remove possible duplicates
 
-    def validate_auth_header(self, auth_header: str, permissions: List[str] = None) -> TokenPayload:
+    def validate_auth_header(
+        self, auth_header: str, permissions: List[str] = None
+    ) -> TokenPayload:
         token = self._extract_token_from_auth_header(auth_header)
         return self.validate_token(token, permissions=permissions)
 
@@ -158,16 +181,24 @@ class Auth0:
                 and all requested data validation passes.
         """
         if not token:
-            raise Auth0Error(status_code=401, code="invalid_token", description="Token is missing")
+            raise Auth0Error(
+                status_code=401, code="invalid_token", description="Token is missing."
+            )
 
         try:
             unverified_header = jwt.get_unverified_header(token)
         except jwt.JWTError:
-            raise Auth0Error(status_code=401, code="invalid_header",
-                             description="Invalid header. Use an RS256 signed JWT Access Token")
+            raise Auth0Error(
+                status_code=401,
+                code="invalid_header",
+                description="Invalid header. Use an RS256 signed JWT Access Token.",
+            )
         if unverified_header["alg"] == "HS256":
-            raise Auth0Error(status_code=401, code="invalid_header",
-                             description="Invalid header. Use an RS256 signed JWT Access Token")
+            raise Auth0Error(
+                status_code=401,
+                code="invalid_header",
+                description="Invalid header. Use an RS256 signed JWT Access Token.",
+            )
         rsa_key = {}
 
         jwks = self._jwks_provider.get()
@@ -178,7 +209,7 @@ class Auth0:
                     "kid": key["kid"],
                     "use": key["use"],
                     "n": key["n"],
-                    "e": key["e"]
+                    "e": key["e"],
                 }
 
         if rsa_key:
@@ -188,18 +219,26 @@ class Auth0:
                     rsa_key,
                     algorithms=self._algorithms,
                     audience=self._api_audience,
-                    issuer="https://" + self._auth0_domain + "/"
+                    issuer="https://" + self._auth0_domain + "/",
                 )
             except jwt.ExpiredSignatureError:
-                raise Auth0Error(status_code=401, code="token_expired", description="Token is expired")
+                raise Auth0Error(
+                    status_code=401,
+                    code="token_expired",
+                    description="Token is expired.",
+                )
 
             except jwt.JWTClaimsError:
-                raise Auth0Error(status_code=401, code="invalid_claims",
-                                 description="Incorrect claims, please check the audience and issuer")
+                raise Auth0Error(
+                    status_code=401,
+                    code="invalid_claims",
+                    description="Incorrect claims, please check the audience and issuer.",
+                )
 
             except Exception as error:
-                raise Auth0Error(status_code=401, code="invalid_token",
-                                 description=str(error))
+                raise Auth0Error(
+                    status_code=401, code="invalid_token", description=str(error)
+                )
 
             """Check permissions
             """
@@ -207,10 +246,16 @@ class Auth0:
                 token_permissions = self._extract_permissions_from_token(token)
                 for permission in permissions:
                     if permission not in token_permissions:
-                        raise Auth0Error(status_code=403, code="Unauthorized",
-                                         description=f"You don't have access to this resource (missing '{permission}' permission)")
+                        raise Auth0Error(
+                            status_code=403,
+                            code="missing_permission",
+                            description=f"You don't have access to this resource. Permission '{permission}' is missing.",
+                        )
 
             return TokenPayload(raw_payload=raw_payload)
 
-        raise Auth0Error(status_code=401, code="invalid_header",
-                         description="Unable to find appropriate key")
+        raise Auth0Error(
+            status_code=401,
+            code="invalid_header",
+            description="Unable to find appropriate key.",
+        )
