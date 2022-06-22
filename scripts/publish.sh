@@ -9,4 +9,7 @@ rm -rf dist/ build/
 python setup.py bdist_wheel
 
 # publish
-python -m twine upload --verbose dist/*
+python -m twine upload --verbose dist/* && {
+  git tag "$(cat pyauth0/VERSION)"
+  git push origin --tags
+}
