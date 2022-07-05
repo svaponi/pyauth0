@@ -8,7 +8,7 @@ Library for Auth0 token validation.
 from pyauth0 import Auth0, Auth0Error
 
 auth0 = Auth0(
-    auth0_domain="your-tenant-dev.us.pyauth0.com",
+    auth0_domain="your-tenant-dev.us.auth0.com",
     api_audience="https://api-dev.your-tenant.com",
     jwks_cache_ttl=60,  # optional
 )

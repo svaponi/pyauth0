@@ -1,14 +1,17 @@
 import json
+import os
 
 import pytest
 
-from pyauth0.auth0 import TokenPayload, Auth0
+from pyauth0 import TokenPayload, Auth0
 
-AUTH0_DOMAIN = "your-tenant.us.pyauth0.com"
-API_AUDIENCE = "https://api.your-tenant.com"
-CLIENT_ID = "9H1uYwvag..."
-TEST_USER = "test user email"
-TEST_PASSWORD = "test user password"
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+API_AUDIENCE = os.getenv("API_AUDIENCE")
+CLIENT_ID = os.getenv("CLIENT_ID")
+TEST_USER = os.getenv("TEST_USER")
+TEST_PASSWORD = os.getenv("TEST_PASSWORD")
+CLAIM = os.getenv("CLAIM")
+CLAIM_VALUE = os.getenv("CLAIM_VALUE")
 
 
 @pytest.fixture
@@ -20,7 +23,7 @@ def get_token():
             password=TEST_PASSWORD,
             client_id=CLIENT_ID,
     ):
-        from urllib import request, parse
+        from urllib import request, parse, error
 
         url = f"https://{auth0_domain}/oauth/token"
         req = request.Request(url, method="POST")
@@ -32,7 +35,10 @@ def get_token():
             "audience": api_audience,
             "client_id": client_id,
         }
-        response = request.urlopen(req, data=parse.urlencode(data).encode())
+        try:
+            response = request.urlopen(req, data=parse.urlencode(data).encode())
+        except error.HTTPError as error:
+            raise RuntimeError(f"POST {url} >> {error.code}")
         if response.status != 200:
             raise RuntimeError(f"POST {url} >> {response.status}")
         access_token = json.loads(response.read()).get("access_token", None)
@@ -60,4 +66,4 @@ def test_parse_token():
 def test_validate_token(auth0, get_token):
     token = get_token()
     payload = auth0.validate_token(token)
-    assert payload.get_required_claim("http://your-tenant.com/claim_name") == "your claim value"
+    assert payload.get_required_claim(CLAIM) == CLAIM_VALUE
