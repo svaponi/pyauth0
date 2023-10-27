@@ -1,8 +1,4 @@
-# Help
-
-This is for contributors only.
-
-### Dependency management
+## Dependency management
 
 You need to have [virtualenv](https://docs.python.org/3/tutorial/venv.html) installed globally. In case you don't, run:
 
@@ -19,7 +15,7 @@ source .venv/bin/activate
 
 > You should now see the prefix `(.venv)` in your terminal prompt. This means the virtualenv is active.
 
-### Install locally
+## Install locally
 
 Install default and test requirements (assure `.venv` is active).
 
@@ -33,22 +29,15 @@ Run tests.
 python -m pytest
 ```
 
-### Publish to [Pypi](https://pypi.org/project/pyauth0/)
+## Publish to [Pypi](https://pypi.org/project/pyauth0/)
 
-A GitHub Action will publish the package whenever a new tag is pushed to git origin.
+A [GitHub Action](https://github.com/svaponi/pyauth0/actions/workflows/publish-to-pypi.yml) will publish the package
+whenever a new git tag is pushed to origin.
 
-With the following command you can roll out a new (patch|minor|major) version and push it (as tag) to our git
-repository.
+Run the following command to roll out a new `patch|minor|major` version and push it to origin.
 
 ```shell
-./scripts/rollout_version.sh
+./rollout.sh
 ```
 
 > When prompt `Push changes?`, type `y`.
-
-
-Alternatively, you can publish manually.
-
-```shell
-./scripts/publish.sh --username __token__ --password "$PYPI_API_TOKEN"
-```
