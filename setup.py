@@ -1,7 +1,4 @@
 import setuptools
-import os
-
-from itertools import chain
 
 # Read description
 with open("README.md", "r") as f:
@@ -20,6 +17,7 @@ def read_requirements(file):
 
 
 install_requires = read_requirements("requirements.txt")
+install_requires_test = read_requirements("requirements.test.txt")
 
 # Creates the setup config for the package
 # We only look for code into the "Modules" folder
@@ -33,6 +31,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/svaponi/pyauth0",
     install_requires=install_requires,
+    extras_require={
+        "test": install_requires_test,
+    },
     packages=setuptools.find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]
     ),
