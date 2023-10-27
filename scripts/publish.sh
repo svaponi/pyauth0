@@ -4,12 +4,14 @@ set -euo pipefail
 # Go to project base dir
 pushd "$(dirname "$0")/.." >/dev/null
 
-# rebuild lib
-rm -rf dist/ build/
-python setup.py bdist_wheel
+# Delete old stuff
+rm -rf dist/ build/ src/*.egg-info/
 
-# publish
-python -m twine upload --verbose dist/* && {
-  git tag "$(cat pyauth0/VERSION)"
-  git push origin --tags
-}
+# Rebuild lib
+python3 setup.py sdist bdist_wheel
+
+# Install required tools
+python3 -m pip install twine
+
+# Publish
+python3 -m twine upload --verbose --non-interactive $@ dist/*

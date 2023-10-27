@@ -1,0 +1,3 @@
+include pyauth0/VERSION
+include requirements.txt
+include test/requirements.txt

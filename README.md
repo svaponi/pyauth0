@@ -1,26 +1,56 @@
+[![Test](https://github.com/svaponi/pyauth0/actions/workflows/run-tests.yml/badge.svg)](https://github.com/svaponi/pyauth0/actions/workflows/run-tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/svaponi/pyauth0/badge.svg?branch=main)](https://coveralls.io/github/svaponi/pyauth0?branch=main)
+[![PyPI version](https://badge.fury.io/py/pyauth0.svg)](https://badge.fury.io/py/pyauth0)
+
 # pyauth0
 
-Library for Auth0 token validation.
+Python utilities for [Auth0](https://auth0.com/).
 
 ## Usage
 
-```python
-from pyauth0 import Auth0, Auth0Error
+Verify a token.
 
-auth0 = Auth0(
-    auth0_domain="your-tenant-dev.us.auth0.com",
-    api_audience="https://api-dev.your-tenant.com",
+```python
+from pyauth0 import TokenProvider
+from urllib.request import Request, urlopen
+
+token_provider = TokenProvider(
+    issuer="your-domain.auth0.com",
+    audience="https://api.your-domain.com",
+    client_id="1234",
+    client_secret="secret"
+)
+
+# Machine to machine request
+response = urlopen(Request(
+    "https://api.your-domain.com",
+    headers={"authorization": token_provider.get_token().get_authorization()},
+))
+```
+
+Get a machine-to-machine token.
+
+```python
+from pyauth0 import TokenVerifier, Auth0Error
+
+token_verifier = TokenVerifier(
+    issuer="your-domain.auth0.com",
+    audience="https://your-domain.com/api",
     jwks_cache_ttl=60,  # optional
 )
 try:
-    token_payload = auth0.validate_auth_header(
-        "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...."
+    decoded_token = token_verifier.verify(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...."
     )
 except Auth0Error as error:
     status_code = error.status_code  # suggested status code (401 or 403)
-    code = error.code  # pyauth0 error code (example "invalid_header")
-    description = error.description  # pyauth0 error description (example "Unable to parse authentication token")
-    raise
+    code = error.code  # pyauth0 error code (example "token_expired")
+    description = error.description  # pyauth0 error description (example "Token is expired.")
+    raise error
 
-claim_value = token_payload.get_claim("http://your-tenant.com/claim_name", "default value")
+claim_value = decoded_token.payload.get("http://your-tenant.com/claim_name", "default value")
 ```
+
+## Contribute
+
+If you want to contribute, open a [GitHub Issue](https://github.com/svaponi/pyauth0/issues) and motivate your request.
