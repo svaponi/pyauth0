@@ -112,10 +112,10 @@ class TokenVerifier:
 
         try:
             header = jwt.get_unverified_headers(token)
-        except jwt.JWSError as error:
+        except Exception as error:
             raise Auth0Error(
                 status_code=401,
-                code="malformed_token",
+                code="invalid_token",
                 description="Malformed token.",
             ) from error
 
