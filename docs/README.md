@@ -1,5 +1,3 @@
-# pyauth0
-
 [![Test](https://github.com/svaponi/pyauth0/actions/workflows/run-tests.yml/badge.svg)](https://github.com/svaponi/pyauth0/actions/workflows/run-tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/svaponi/pyauth0/badge.svg?branch=main)](https://coveralls.io/github/svaponi/pyauth0?branch=main)
 [![PyPI version](https://badge.fury.io/py/pyauth0.svg)](https://badge.fury.io/py/pyauth0)
