@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyauth0"
-version = "0.1.2"
+version = "0.1.3"
 description = "Python utilities for Auth0"
 authors = ["svaponi <10941963+svaponi@users.noreply.github.com>"]
 readme = "README.md"
