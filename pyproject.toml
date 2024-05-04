@@ -4,7 +4,8 @@ version = "0.1.2"
 description = "Python utilities for Auth0"
 authors = ["svaponi <10941963+svaponi@users.noreply.github.com>"]
 readme = "README.md"
-homepage = "https://github.com/svaponi/pyauth0"
+homepage = "https://svaponi.github.io/pyauth0"
+repository = "https://github.com/svaponi/pyauth0"
 license = "MIT"
 classifiers = ['Development Status :: 4 - Beta']
 
