@@ -6,13 +6,20 @@ authors = ["svaponi <10941963+svaponi@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.13"
 python-jose = "^3.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 python-dotenv = "^1.0.1"
+
+
+[tool.poetry.group.coverage]
+optional = true
+
+[tool.poetry.group.coverage.dependencies]
+coveralls = "^4.0.0"
 
 [build-system]
 requires = ["poetry-core"]
