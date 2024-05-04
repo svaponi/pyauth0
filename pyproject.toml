@@ -1,3 +1,29 @@
+[tool.poetry]
+name = "pyauth0"
+version = "0.1.2"
+description = "Python utilities for Auth0"
+authors = ["svaponi <10941963+svaponi@users.noreply.github.com>"]
+readme = "README.md"
+homepage = "https://github.com/svaponi/pyauth0"
+license = "MIT"
+classifiers = ['Development Status :: 4 - Beta']
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.13"
+python-jose = "^3.3.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+python-dotenv = "^1.0.1"
+
+
+[tool.poetry.group.coverage]
+optional = true
+
+[tool.poetry.group.coverage.dependencies]
+coveralls = "^4.0.0"
+
 [build-system]
-requires = ["setuptools>=42"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
