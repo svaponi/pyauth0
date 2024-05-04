@@ -4,6 +4,9 @@ version = "0.1.2"
 description = "Python utilities for Auth0"
 authors = ["svaponi <10941963+svaponi@users.noreply.github.com>"]
 readme = "README.md"
+homepage = "https://github.com/svaponi/pyauth0"
+license = "MIT"
+classifiers = ['Development Status :: 4 - Beta']
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
