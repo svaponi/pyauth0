@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+target="${1:-patch}"
+
 echo "Rolling out '$target' version ..."
 
 output_message="$(poetry version "$target")"
