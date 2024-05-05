@@ -8,6 +8,7 @@ from urllib.request import urlopen
 from jose import jwt
 
 from pyauth0.errors import Auth0Error
+from pyauth0.utils import sanitize_issuer
 
 
 @dataclasses.dataclass
@@ -45,14 +46,11 @@ class JwksProvider(abc.ABC):
 
 
 class _JwksProviderBase(JwksProvider):
-    def __init__(self, auth0_domain: str) -> None:
-        """
-        :param auth0_domain: the domain
-        """
-        self.auth0_domain = auth0_domain
+    def __init__(self, issuer: str) -> None:
+        self._issuer = sanitize_issuer(issuer)
 
     def get(self):
-        url = "https://" + self.auth0_domain + "/.well-known/jwks.json"
+        url = self._issuer + "/.well-known/jwks.json"
         return json.loads(urlopen(url).read())
 
 
@@ -84,7 +82,15 @@ class TokenVerifier:
         jwks_provider: Optional[JwksProvider] = None,
         jwks_cache_ttl: Optional[int] = None,
     ):
-        self._issuer = issuer
+        """
+        :param issuer: hostname of the tenant in Auth0, example `your-domain.auth0.com`
+        :param audience: API identifier
+        """
+        if not issuer:
+            raise ValueError("missing issuer")
+        self._issuer = sanitize_issuer(issuer)
+        if not audience:
+            raise ValueError("missing audience")
         self._audience = audience
         # this is not safe to change without double-checking configuration in Auth0 dashboard + current codebase
         self._algorithms = ["RS256"]
@@ -151,7 +157,7 @@ class TokenVerifier:
                 rsa_key,
                 algorithms=self._algorithms,
                 audience=self._audience,
-                issuer="https://" + self._issuer + "/",
+                issuer=self._issuer + "/",
             )
         except jwt.ExpiredSignatureError as error:
             raise Auth0Error(
