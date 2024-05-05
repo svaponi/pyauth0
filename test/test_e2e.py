@@ -6,7 +6,8 @@ import pytest
 from pyauth0 import TokenVerifier, TokenProvider
 
 
-def test_validate_token_e2e():
+@pytest.mark.asyncio
+async def test_validate_token_e2e():
     dotenv.load_dotenv()
 
     issuer = os.getenv("AUTH0_ISSUER")
@@ -30,8 +31,8 @@ def test_validate_token_e2e():
         client_secret=client_secret,
     )
 
-    access_token = token_provider.get_token().access_token
+    access_token = await token_provider.get_access_token()
     assert access_token
-    decoded_token = token_verifier.verify(access_token)
+    decoded_token = await token_verifier.verify(access_token)
     assert decoded_token.header
     assert decoded_token.payload

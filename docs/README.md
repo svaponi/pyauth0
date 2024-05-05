@@ -21,8 +21,9 @@ pip install pyauth0
 ### Get a machine-to-machine token
 
 ```python
+import asyncio
+import httpx
 from pyauth0 import TokenProvider
-from urllib.request import Request, urlopen
 
 token_provider = TokenProvider(
     issuer="your-domain.auth0.com",
@@ -31,16 +32,26 @@ token_provider = TokenProvider(
     client_secret="secret"
 )
 
-# Machine to machine request
-response = urlopen(Request(
-    "https://api.your-domain.com",
-    headers={"authorization": token_provider.get_token().get_authorization()},
-))
+
+async def main():
+    authorization = await token_provider.get_authorization()
+    async with httpx.AsyncClient() as client:
+        # Machine to machine request
+        response = await client.get(
+            "https://api.your-domain.com",
+            headers={"authorization": authorization},
+        )
+        print(response.content)
+
+
+asyncio.run(main())
 ```
 
 ### Verify a token
 
 ```python
+import asyncio
+
 from pyauth0 import TokenVerifier, Auth0Error
 
 token_verifier = TokenVerifier(
@@ -48,17 +59,23 @@ token_verifier = TokenVerifier(
     audience="https://api.your-domain.com",
     jwks_cache_ttl=60,  # optional
 )
-try:
-    decoded_token = token_verifier.verify(
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...."
-    )
-except Auth0Error as error:
-    status_code = error.status_code  # suggested status code (401 or 403)
-    code = error.code  # pyauth0 error code (example "token_expired")
-    description = error.description  # pyauth0 error description (example "Token is expired.")
-    raise error
 
-claim_value = decoded_token.payload.get("http://your-domain.com/claim_name", "default value")
+
+async def main():
+    try:
+        decoded_token = await token_verifier.verify(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...."
+        )
+    except Auth0Error as error:
+        status_code = error.status_code  # suggested status code (401 or 403)
+        code = error.code  # auth0 error code (example "token_expired")
+        description = error.description  # auth0 error description (example "Token is expired.")
+        raise error
+
+    claim_value = decoded_token.payload.get("http://your-domain.com/claim_name", "default value")
+
+
+asyncio.run(main())
 ```
 
 ## Contribute
