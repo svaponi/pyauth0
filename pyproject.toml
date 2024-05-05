@@ -17,6 +17,7 @@ python-jose = "^3.3.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 python-dotenv = "^1.0.1"
+pytest-httpserver = "^1.0.10"
 
 
 [tool.poetry.group.coverage]

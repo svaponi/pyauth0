@@ -5,6 +5,8 @@ import typing
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from pyauth0.utils import sanitize_issuer
+
 
 @dataclasses.dataclass
 class GetTokenResponse:
@@ -35,7 +37,7 @@ class TokenProvider:
         payload_customizer: typing.Callable[[dict], dict] = None,
     ):
         """
-        :param issuer: hostname of the tenant in Auth0, example `spartanapproach-dev.us.auth0.com`
+        :param issuer: hostname of the tenant in Auth0, example `your-domain.auth0.com`
         :param audience: API identifier
         :param client_id:
         :param client_secret:
@@ -48,7 +50,7 @@ class TokenProvider:
             raise ValueError("missing client_id")
         if not client_secret:
             raise ValueError("missing client_secret")
-        self._issuer = issuer
+        self._issuer = sanitize_issuer(issuer)
         self._audience = audience
         self._client_id = client_id
         self._client_secret = client_secret
@@ -57,7 +59,7 @@ class TokenProvider:
 
     def get_token(self) -> GetTokenResponse:
         if self._cache is None or self._cache.is_expired():
-            url = f"https://{self._issuer}/oauth/token"
+            url = f"{self._issuer}/oauth/token"
             payload = {
                 "grant_type": "client_credentials",
                 "audience": self._audience,
