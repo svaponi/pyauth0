@@ -1,9 +1,6 @@
 import dataclasses
 import datetime
-import json
 import typing
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 
 from pyauth0.utils import sanitize_issuer
 
@@ -15,7 +12,8 @@ class GetTokenResponse:
     token_type: str
     expires_at: datetime.datetime
 
-    def get_authorization(self) -> str:
+    @property
+    def authorization(self) -> str:
         return f"{self.token_type} {self.access_token}"
 
     def is_expired(self, skew_seconds: int = None):
@@ -55,10 +53,10 @@ class TokenProvider:
         self._client_id = client_id
         self._client_secret = client_secret
         self._payload_customizer = payload_customizer
-        self._cache: typing.Optional[GetTokenResponse] = None
+        self._get_token_response: typing.Optional[GetTokenResponse] = None
 
-    def get_token(self) -> GetTokenResponse:
-        if self._cache is None or self._cache.is_expired():
+    async def get_token(self) -> GetTokenResponse:
+        if not self._get_token_response or self._get_token_response.is_expired():
             url = f"{self._issuer}/oauth/token"
             payload = {
                 "grant_type": "client_credentials",
@@ -69,29 +67,23 @@ class TokenProvider:
             if self._payload_customizer:
                 payload = self._payload_customizer(payload)
 
-            request_data = json.dumps(payload)
-            request = Request(
-                url,
-                method="POST",
-                data=request_data.encode("utf-8"),
-                headers={"content-type": "application/json"},
-            )
-
             try:
-                response = urlopen(request)
-            except HTTPError as error:
-                raise RuntimeError(
-                    f"Invalid response POST {url} {request_data} >> {error.code}"
-                )
+                import httpx
 
-            response_data = response.read().decode("utf-8")
-            if response.status != 200:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        url,
+                        json=payload,
+                        headers={"content-type": "application/json"},
+                    )
+            except Exception as error:
+                raise RuntimeError(f"Invalid response POST {url} >> {error}")
+            if response.status_code != 200:
                 raise RuntimeError(
-                    f"Invalid response POST {url} {request_data} >> {response.status} {response_data}"
+                    f"Invalid response POST {url} >> {response.status_code} {response.text}"
                 )
-
-            response_dict = json.loads(response_data)
-            self._cache = GetTokenResponse(
+            response_dict = response.json()
+            self._get_token_response = GetTokenResponse(
                 response_body=response_dict,
                 access_token=response_dict.get("access_token"),
                 token_type=response_dict.get("token_type"),
@@ -99,4 +91,12 @@ class TokenProvider:
                 + datetime.timedelta(seconds=response_dict.get("expires_in")),
             )
 
-        return self._cache
+        return self._get_token_response
+
+    async def get_access_token(self) -> str:
+        res = await self.get_token()
+        return res.access_token
+
+    async def get_authorization(self) -> str:
+        res = await self.get_token()
+        return res.authorization

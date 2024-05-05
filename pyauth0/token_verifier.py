@@ -1,10 +1,9 @@
 import abc
 import dataclasses
 import datetime
-import json
 from typing import Optional
-from urllib.request import urlopen
 
+import httpx
 from jose import jwt
 
 from pyauth0.errors import Auth0Error
@@ -41,7 +40,7 @@ class JwksProvider(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get(self):
+    async def get(self):
         pass
 
 
@@ -49,9 +48,11 @@ class _JwksProviderBase(JwksProvider):
     def __init__(self, issuer: str) -> None:
         self._issuer = sanitize_issuer(issuer)
 
-    def get(self):
+    async def get(self):
         url = self._issuer + "/.well-known/jwks.json"
-        return json.loads(urlopen(url).read())
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            return response.json()
 
 
 class _JwksProviderCacheDecorator(JwksProvider):
@@ -65,9 +66,9 @@ class _JwksProviderCacheDecorator(JwksProvider):
         self._jwks = None
         self._expires_at = None
 
-    def get(self):
+    async def get(self):
         if not self._expires_at or self._expires_at <= datetime.datetime.now():
-            self._jwks = self._delegate.get()
+            self._jwks = await self._delegate.get()
             self._expires_at = datetime.datetime.now() + datetime.timedelta(
                 seconds=self._ttl
             )
@@ -103,7 +104,7 @@ class TokenVerifier:
                     self._jwks_provider, jwks_cache_ttl
                 )
 
-    def verify(self, token: str) -> DecodedToken:
+    async def verify(self, token: str) -> DecodedToken:
         """
         Decodes and verifies the token payload
 
@@ -133,7 +134,7 @@ class TokenVerifier:
             )
 
         rsa_key = {}
-        jwks = self._jwks_provider.get()
+        jwks = await self._jwks_provider.get()
         for key in jwks["keys"]:
             if key["kid"] == header["kid"]:
                 rsa_key = {
