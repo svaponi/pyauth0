@@ -19,8 +19,6 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 
-from pyauth0.utils import _sanitize_issuer
-
 
 def _int_to_bytes(n: int):
     num_bytes = (n.bit_length() + 7) // 8

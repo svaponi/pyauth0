@@ -2,12 +2,8 @@ name: Test
 run-name: Run Tests 🧪
 on:
   push:
-    branches:
-      - main
-      - 'task/**'
-      - 'fix/**'
-      - 'feature/**'
-      - 'release/**'
+    paths:
+      - 'pyauth0/**'
   workflow_call:
     secrets:
       AUTH0_ISSUER:
